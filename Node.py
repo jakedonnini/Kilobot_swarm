@@ -48,13 +48,33 @@ class Node(Thread):
         # goal state
         self.binary = np.array(binary)
         self.cell_size = 0.1
-        self.anchor = np.array([0, 0])  # bottom-left (x, y) corner
-        self.goal_indices = set(zip(*np.where(self.binary == 1)))
+
+        flip_binary = np.flipud(binary)
+
+        # Find all positions where binary == 1
+        rows, cols = np.where(flip_binary == 1)
+
+        # Step 1: Find the most bottom row (max row index)
+        bottom_row = max(rows)
+
+        # Step 2: Among the bottom-most rows, find the left-most column
+        candidate_cols = cols[rows == bottom_row]
+        left_col = min(candidate_cols)
+
+        # Set anchor based on bottom-left most 1
+        self.anchor = np.array([left_col, bottom_row]) * self.cell_size
+        # self.anchor = np.zeros(2)
+        self.goal_indices = set(zip(rows, cols))
+        # print(f"Anchor set to bottom-left 1 at bitmap grid position ({bottom_row}, {left_col}) -> anchor: {self.anchor}")
+
+
 
     def pos_to_grid(self, pos):
       """Convert continuous position to grid coordinates."""
-      rel_pos = (pos - self.anchor) / self.cell_size
-      i, j = int(rel_pos[1]), int(rel_pos[0])
+      rel_pos = (self.anchor - pos) / self.cell_size
+      # if self.uid == 47:
+      #   print(f"Node {self.uid} pos_to_grid: {pos} -> rel_pos: {rel_pos}, anchor: {self.anchor}, cell_size: {self.cell_size}")
+      i, j = int(round(rel_pos[1])), int(round(rel_pos[0]))
       return (i, j)
     
     def is_inside_goal(self, pos):
@@ -180,8 +200,8 @@ class Node(Thread):
         self.reached_same_grad_in_goal = True
         return
 
-      if self.uid == 19 or self.uid == 36 or self.uid == 53:
-        print(f"Node {self.uid} larger_grad: {larger_grad}, same_grad: {same_grad}, num: {len(self.visible_neighbors)}, {min_num_neighbors} gradient: {self.gradient}, moving: {self.moving} y: {self.state[1]}, {lowest_y_value}, {lowest_y_value >= self.state[1]}")
+      # if self.uid == 19 or self.uid == 36 or self.uid == 53:
+      #   print(f"Node {self.uid} larger_grad: {larger_grad}, same_grad: {same_grad}, num: {len(self.visible_neighbors)}, {min_num_neighbors} gradient: {self.gradient}, moving: {self.moving} y: {self.state[1]}, {lowest_y_value}, {lowest_y_value >= self.state[1]}")
                     
       self.can_move = not larger_grad and not same_grad
 

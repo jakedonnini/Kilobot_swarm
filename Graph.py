@@ -8,6 +8,8 @@ from matplotlib import pyplot as plt
 from matplotlib import animation
 from matplotlib import cm
 from matplotlib.colors import Normalize
+from matplotlib.patches import Rectangle
+
 
 class Graph:
   def __init__(self, filename = None):
@@ -17,18 +19,22 @@ class Graph:
     self.E = []
     self.root = None
     self.text_labels = []
+    self.goal_patches = []
+    self.use_text_labels = False
+    self.use_goal_area = True
+
     
     # for plotting
     self.animatedt = 100 # milliseconds
     self.fig = plt.figure()
-    self.ax = plt.axes(xlim=(-1.5, 1.5), ylim=(-1.5, 1.5))
+    self.ax = plt.axes(xlim=(-4, 1.5), ylim=(-1.5, 4))
     self.ax.set_aspect('equal', 'box')
     self.pts, = self.ax.plot([], [], 'bo')
     self.anim = None
 
     # Change plot to scatter for color control
-    self.seed_scatter = self.ax.scatter([], [], s=80, c='green', edgecolors='black', marker='o')
-    self.node_scatter = self.ax.scatter([], [], s=80, cmap='coolwarm', edgecolors='black', marker='o')
+    self.seed_scatter = self.ax.scatter([], [], s=40, c='green', edgecolors='black', marker='o') # was 80
+    self.node_scatter = self.ax.scatter([], [], s=40, cmap='coolwarm', edgecolors='black', marker='o')
     self.negative_norm = Normalize(vmin=-10, vmax=0)  # Adjust based on your expected gradient range
     self.norm = Normalize(vmin=0, vmax=10)
 
@@ -109,6 +115,29 @@ class Graph:
         colors.append(rgba)
 
     return x, y, colors
+  
+  def draw_goal_area(self):
+    for patch in self.goal_patches:
+        patch.remove()
+    self.goal_patches.clear()
+
+    if self.V:
+        sample_node = self.V[0]
+        binary = sample_node.binary
+        cell_size = sample_node.cell_size
+        anchor = sample_node.anchor
+
+        rows, cols = np.where(binary == 1)
+        bottom_row = max(rows)
+        left_col = min(cols[rows == bottom_row])
+
+        for i, j in zip(rows, cols):
+            x = (j - left_col) * cell_size - anchor[0] - 0.3
+            y = (i - bottom_row) * cell_size + anchor[1]
+            rect = Rectangle((x, y), cell_size, cell_size, linewidth=0.5, edgecolor='gray', facecolor='lightgray', alpha=0.4)
+            self.ax.add_patch(rect)
+            self.goal_patches.append(rect)
+
 
   def run(self):
     """ Run the alg on all of the nodes """
@@ -174,12 +203,14 @@ class Graph:
 
       
   def setupAnimation(self):
+    if self.use_goal_area:
+      self.draw_goal_area()  # Draw goal area first
     self.anim = animation.FuncAnimation(
-    self.fig,
-    self.animate,
-    interval=self.animatedt,
-    blit=True,
-    cache_frame_data=False)
+        self.fig,
+        self.animate,
+        interval=self.animatedt,
+        blit=True,
+        cache_frame_data=False)
     plt.show()
     
   def animate(self, i):
@@ -190,14 +221,15 @@ class Graph:
     self.node_scatter.set_facecolor(nc)
 
     # Clear old text labels
-    for label in self.text_labels:
-        label.remove()
-    self.text_labels.clear()
+    if self.use_text_labels:
+      for label in self.text_labels:
+          label.remove()
+      self.text_labels.clear()
 
-    # Add new text labels for each node
-    for v in self.V:
-        x, y = v.state[0], v.state[1]
-        label = self.ax.text(x, y, str(v.uid), color='black', ha='center', va='center', fontsize=8, weight='bold')
-        self.text_labels.append(label)
+      # Add new text labels for each node
+      for v in self.V:
+          x, y = v.state[0], v.state[1]
+          label = self.ax.text(x, y, str(v.uid), color='black', ha='center', va='center', fontsize=8, weight='bold')
+          self.text_labels.append(label)
 
     return [self.seed_scatter, self.node_scatter] + self.text_labels

@@ -17,7 +17,7 @@ def load_binary_shape(image_path, threshold=128):
   img = Image.open(image_path).convert('L')  # grayscale
   arr = np.array(img)
   binary = (arr < threshold).astype(int)
-  binary = np.flipud(binary)  # anchor bottom-left
+  binary = np.flipud(binary)  # flip vertically to match bottom-left anchoring
   np.savetxt("binaries", binary, fmt='%d')
   return binary
 
@@ -41,7 +41,7 @@ def generateRandomGraph(N, filename):
   # Grid dimensions
   # num_rows = int(np.floor(np.sqrt(N)))
   # num_cols = int(np.ceil(N / num_rows))
-  num_rows = 3  # fixed number of rows for better packing
+  num_rows = 4  # fixed number of rows for better packing
   num_cols = int(np.ceil(N / num_rows))
   spacing = 0.1  # adjust spacing here for denser or looser packing
 
@@ -73,10 +73,14 @@ def generateRandomGraph(N, filename):
 
 ### MAIN
 if __name__ == '__main__':
-  filename = "Black_square_10.png"
+  # Black_star_40
+  # Black_square_10.png
+  # filename = "Black_square_10.png"
+  filename = "Black_star_40.png"
+
 
   # generate a random graph with 10 nodes
-  G = generateRandomGraph(50, filename)
+  G = generateRandomGraph(40, filename)
   
   # print out the graph descriptor
   print(G)
