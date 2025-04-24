@@ -18,6 +18,7 @@ class Node(Thread):
         self.nominaldt = 0.05
         self.start_time = None
         self.moving = False  # True if currently moving
+        self.is_active = False  # New flag to control activity without restarting
 
         self.is_seed = is_seed
         # firt seed has gradient 0, others have gradient 1
@@ -43,7 +44,7 @@ class Node(Thread):
 
         self.last_neighbors = set()
         self.last_neighbor_change_time = None
-        self.neighbor_change_delay = 1  # seconds
+        self.neighbor_change_delay = 1.5  # seconds
 
         # goal state
         self.binary = np.array(binary)
@@ -112,13 +113,12 @@ class Node(Thread):
 
         if self.start_time is None:
           self.start_time = start
-
-        self.send()
-        self.transition()
-        
-        # Wait 2 seconds before running systemdynamics
-        if time.time() - self.start_time >= 2:
-          self.systemdynamics()
+        # print(f"Node {self.uid} is active: {self.is_active}, moving: {self.moving}, gradient: {self.gradient}, reached_goal: {self.reached_goal}")
+        if self.is_active:
+            self.send()
+            self.transition()
+            if time.time() - self.start_time >= 2:
+                self.systemdynamics()
         
         end = time.time()
         time.sleep(max(self.nominaldt - (end-start), 0))
@@ -182,10 +182,8 @@ class Node(Thread):
         larger_grad = True
       elif max_grad == self.gradient:
         # Prioritize the node with the lowest y value
-        # print(f"Node {self.uid} min num {min_num_neighbors} {len(self.visible_neighbors)}, same_grad: {same_grad}, larger_max: {self.gradient}, {max_grad} lowest_y_value: {lowest_y_value}, state[1]: {self.state[1]}")
         if min_num_neighbors >= len(self.visible_neighbors):
           if lowest_y_value >= self.state[1]:
-            # print(f"\nPOP\nNode {self.uid} min num {min_num_neighbors} {len(self.visible_neighbors)}, same_grad: {same_grad}, larger_max: {self.gradient}, {max_grad} lowest_y_value: {lowest_y_value}, state[1]: {self.state[1]}")
             same_grad = False
         else:
           same_grad = True      
@@ -201,7 +199,7 @@ class Node(Thread):
         return
 
       # if self.uid == 19 or self.uid == 36 or self.uid == 53:
-      #   print(f"Node {self.uid} larger_grad: {larger_grad}, same_grad: {same_grad}, num: {len(self.visible_neighbors)}, {min_num_neighbors} gradient: {self.gradient}, moving: {self.moving} y: {self.state[1]}, {lowest_y_value}, {lowest_y_value >= self.state[1]}")
+      # print(f"Node {self.uid} larger_grad: {larger_grad}, same_grad: {same_grad}, num: {len(self.visible_neighbors)}, {min_num_neighbors} gradient: {self.gradient}, moving: {self.moving} y: {self.state[1]}, {lowest_y_value}, {lowest_y_value >= self.state[1]}")
                     
       self.can_move = not larger_grad and not same_grad
 

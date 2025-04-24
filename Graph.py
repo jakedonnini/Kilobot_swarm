@@ -21,7 +21,13 @@ class Graph:
     self.text_labels = []
     self.goal_patches = []
     self.use_text_labels = False
-    self.use_goal_area = True
+    self.use_goal_area = False
+
+    self.active_nodes = []
+    self.inactive_nodes = []
+    self.finished_nodes = []
+    self.batch_size = 40
+
 
     
     # for plotting
@@ -92,6 +98,25 @@ class Graph:
   #
   ################################################
 
+  def activate_next_batch(self):
+    # Log batch status
+    # print(f"Checking batch status: {[(n.uid, n.reached_goal) for n in self.active_nodes]}")
+    if all(n.reached_goal for n in self.active_nodes) and self.inactive_nodes:
+        print("Switching to next batch.")
+        for n in self.active_nodes:
+            n.is_active = False
+            self.finished_nodes.append(n)
+        self.active_nodes = []
+
+        for _ in range(min(self.batch_size, len(self.inactive_nodes))):
+            next_node = self.inactive_nodes.pop(0)
+            next_node.is_active = True
+            self.active_nodes.append(next_node)
+        print(f"New batch activated: {[n.uid for n in self.active_nodes]}")
+        print(f"Inactive nodes left: {len(self.inactive_nodes)}")
+
+
+
   def gatherNodeLocationsAndColors(self):
     """ Collect state information and color info from all nodes """
     x = []
@@ -142,8 +167,8 @@ class Graph:
   def run(self):
     """ Run the alg on all of the nodes """
     # Start running the threads
-    for i in range(self.Nv):
-      self.V[i].start()
+    for node in self.active_nodes:
+        node.is_active = True
 
   def stop(self):
     """ Send a stop signal """
@@ -185,6 +210,8 @@ class Graph:
         if v.is_seed:
             seed_x.append(v.state[0])
             seed_y.append(v.state[1])
+        elif v in self.inactive_nodes:
+          continue
         else:
             node_x.append(v.state[0])
             node_y.append(v.state[1])
@@ -215,6 +242,7 @@ class Graph:
     
   def animate(self, i):
     sx, sy, nx, ny, nc = self.gatherNodeData()
+    self.activate_next_batch()
 
     self.seed_scatter.set_offsets(np.c_[sx, sy])
     self.node_scatter.set_offsets(np.c_[nx, ny])
