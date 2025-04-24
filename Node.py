@@ -138,7 +138,7 @@ class Node(Thread):
       # Handle nodes that reached the goal:
       if self.reached_goal:
         self.r_sense = self.r_sense_initial
-        print(f"Node {self.uid} reached the goal. gradent: {self.gradient} {[(id, grad) for _, grad, _, _, _, id in self.visible_neighbors.values()]}")
+        # print(f"Node {self.uid} reached the goal. gradent: {self.gradient} {[(id, grad) for _, grad, _, _, _, id in self.visible_neighbors.values()]}")
         return
 
       larger_grad = False
@@ -163,8 +163,8 @@ class Node(Thread):
       elif max_grad == self.gradient:
         # Prioritize the node with the lowest y value
         # print(f"Node {self.uid} min num {min_num_neighbors} {len(self.visible_neighbors)}, same_grad: {same_grad}, larger_max: {self.gradient}, {max_grad} lowest_y_value: {lowest_y_value}, state[1]: {self.state[1]}")
-        if min_num_neighbors == len(self.visible_neighbors):
-          if lowest_y_value == self.state[1]:
+        if min_num_neighbors >= len(self.visible_neighbors):
+          if lowest_y_value >= self.state[1]:
             # print(f"\nPOP\nNode {self.uid} min num {min_num_neighbors} {len(self.visible_neighbors)}, same_grad: {same_grad}, larger_max: {self.gradient}, {max_grad} lowest_y_value: {lowest_y_value}, state[1]: {self.state[1]}")
             same_grad = False
         else:
@@ -180,8 +180,8 @@ class Node(Thread):
         self.reached_same_grad_in_goal = True
         return
 
-      # if self.uid == 11 or self.uid == 10 or self.uid == 18:
-      # print(f"Node {self.uid} larger_grad: {larger_grad}, same_grad: {same_grad}, num: {min_num_neighbors} gradient: {self.gradient}, moving: {self.moving}")
+      if self.uid == 19 or self.uid == 36 or self.uid == 53:
+        print(f"Node {self.uid} larger_grad: {larger_grad}, same_grad: {same_grad}, num: {len(self.visible_neighbors)}, {min_num_neighbors} gradient: {self.gradient}, moving: {self.moving} y: {self.state[1]}, {lowest_y_value}, {lowest_y_value >= self.state[1]}")
                     
       self.can_move = not larger_grad and not same_grad
 

@@ -41,7 +41,7 @@ def generateRandomGraph(N, filename):
   # Grid dimensions
   # num_rows = int(np.floor(np.sqrt(N)))
   # num_cols = int(np.ceil(N / num_rows))
-  num_rows = 2  # fixed number of rows for better packing
+  num_rows = 3  # fixed number of rows for better packing
   num_cols = int(np.ceil(N / num_rows))
   spacing = 0.1  # adjust spacing here for denser or looser packing
 
