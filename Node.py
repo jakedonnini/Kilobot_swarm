@@ -37,7 +37,7 @@ class Node(Thread):
         self.edge_node = False
 
         self.density_threshold = 3  # edge if fewer than this many neighbors
-        self.move_speed = 0.02
+        self.move_speed = 0.018
 
         self.reached_goal = False
         self.reached_same_grad_in_goal = False
@@ -315,5 +315,6 @@ class Node(Thread):
             # print(f"Node {self.uid} using fallback push-out to avoid blockage.")
             self.state[:2] = proposed_pos
         else:
-            # print(f"Node {self.uid} completely blocked — staying still.")
+            # self.reached_goal = True
+            print(f"Node {self.uid} completely blocked — staying still.")
             self.moving = False

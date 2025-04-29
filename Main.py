@@ -40,7 +40,8 @@ def generateRandomGraph(N, filename):
     G.finished_nodes.append(seed)  # seeds are always active/finished
 
   # Grid dimensions
-  batch_size = 60  # number of nodes to activate at once
+  batch_size = 40  # number of nodes to activate at once
+  batch_size = min(batch_size, N)  # ensure we don't exceed available nodes
   # num_rows = int(np.floor(np.sqrt(N)))
   # num_cols = int(np.ceil(N / num_rows))
   num_rows = 3  # fixed number of rows for better packing
@@ -88,11 +89,15 @@ def generateRandomGraph(N, filename):
 
 ### MAIN
 if __name__ == '__main__':
+  start = time.time()
   # Black_star_40
   # Black_square_10.png
   # filename = "Black_square_10.png"
-  filename = "Black_star_20.png"
-
+  # filename = "K_20.png"
+  filename = "wrench_10.png"
+  # filename = "circle_15.png"
+  # filename = "P_20.png"
+  # filename = "Black_star_20.png"
 
   # generate a random graph with 10 nodes
   G = generateRandomGraph(120, filename)
@@ -109,3 +114,4 @@ if __name__ == '__main__':
   print("Sending stop signal.....")
   G.stop()            # send stop signal
   print("========== Terminated ==========")
+  print("Time elapsed: ", time.time() - start)
